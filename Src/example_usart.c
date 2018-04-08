@@ -33,6 +33,7 @@
  ******************************************************************************
  */
 
+#include "string.h"
 #include "example_usart.h"
 #include "xnucleoihm02a1.h"
 
@@ -102,7 +103,7 @@ typedef enum {
  * @{
  */
 
-UART_HandleTypeDef huart2; //!< The data structure for all further instances to USART2.
+//extern UART_HandleTypeDef huart2; //!< The data structure for all further instances to USART2.
 sL6470_DaisyChainMnemonic L6470_DaisyChainMnemonic[L6470DAISYCHAINSIZE]; //!< The mnemonic names for the L6470 in the daisy chain configuration
 uint8_t UsartTextString[USARTTEXTSTRINGSIZE]; //!< To store the USART input text string.
 sL6470_TextCommandBundle L6470_TextCommandBundle[L6470DAISYCHAINSIZE]; //!< To store the splitted USART input text string into single fileds.
@@ -867,6 +868,8 @@ uint32_t* USART_DecodeTextString(uint8_t *pTextString,
 	} else {
 #ifdef NUCLEO_USE_USART
 		USART_Transmit(&huart2, "Please, enter a new command string!\n\r\n\r");
+		HAL_UART_Abort(&huart2);
+		memset(&UsartTextString, 0x0, sizeof(UsartTextString));
 #endif
 	}
 
@@ -957,6 +960,7 @@ void USART_TxWelcomeMessage(void) {
 	USART_Transmit(&huart2, " \n\r");
 	USART_Transmit(&huart2, " X-CUBE-SPN2 v1.0.0\n\r");
 	USART_Transmit(&huart2, " STMicroelectronics, 2015\n\r\n\r");
+	USART_Transmit(&huart2, " Merged by EmOne, 2018\n\r\n\r");
 }
 
 /**
@@ -988,11 +992,14 @@ void USART_Transmit_Data(UART_HandleTypeDef* huart, uint8_t* TextString) {
  *         so to proceed to decode and perform the command.
  */
 void USART_CheckAppCmd(void) {
+
 	/* Checks the UART2 is in idle state */
 	if (huart2.gState == HAL_UART_STATE_READY) {
+
 		/* Checks one character has been at least entered */
-		if (UsartTextString[0] != '\0') {
+		if (strchr((char *) UsartTextString, '\r') != NULL) {
 			/* Decode the entered command string */
+			strtok((char *) UsartTextString, "\r");
 			USART_DecodeTextString(UsartTextString, L6470_TextCommandBundle,
 					(uint8_t*) L6470_DaisyChainSpiTxStruct,
 					(uint8_t*) L6470_DaisyChainSpiRxStruct);
