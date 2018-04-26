@@ -868,8 +868,6 @@ uint32_t* USART_DecodeTextString(uint8_t *pTextString,
 	} else {
 #ifdef NUCLEO_USE_USART
 		USART_Transmit(&huart2, "Please, enter a new command string!\n\r\n\r");
-		HAL_UART_Abort(&huart2);
-		memset(&UsartTextString, 0x0, sizeof(UsartTextString));
 #endif
 	}
 
@@ -957,10 +955,10 @@ void USART_TxWelcomeMessage(void) {
 	USART_Transmit(&huart2, " Dual L6470 Expansion Board for STM32 NUCLEO\n\r");
 	USART_Transmit(&huart2, " Stacked on ");
 	USART_Transmit(&huart2, NUCLEO_BOARD_NAME);
-	USART_Transmit(&huart2, " \n\r");
+	USART_Transmit(&huart2, " Merged by EmOne, 2018\n\r");
 	USART_Transmit(&huart2, " X-CUBE-SPN2 v1.0.0\n\r");
 	USART_Transmit(&huart2, " STMicroelectronics, 2015\n\r\n\r");
-	USART_Transmit(&huart2, " Merged by EmOne, 2018\n\r\n\r");
+
 }
 
 /**
@@ -1003,6 +1001,8 @@ void USART_CheckAppCmd(void) {
 			USART_DecodeTextString(UsartTextString, L6470_TextCommandBundle,
 					(uint8_t*) L6470_DaisyChainSpiTxStruct,
 					(uint8_t*) L6470_DaisyChainSpiRxStruct);
+			HAL_UART_Abort(&huart2);
+			memset(&UsartTextString, 0x0, sizeof(UsartTextString));
 		}
 
 		/* Prepare to receive a text string via USART with UART_IT_RXNE */
